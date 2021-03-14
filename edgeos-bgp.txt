@@ -1,0 +1,9 @@
+configure
+set protocols bgp 64512 parameters router-id 192.168.86.1
+set protocols bgp 64512 neighbor 192.168.86.200 remote-as 64512
+set protocols bgp 64512 neighbor 192.168.86.201 remote-as 64512
+set protocols bgp 64512 neighbor 192.168.86.212 remote-as 64512
+set protocols bgp 64512 maximum-paths ibgp 32
+commit
+save
+exit

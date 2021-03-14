@@ -1,0 +1,31 @@
+# This file is managed by salt, local modification may be overwritten.
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+
+
+
+smtpd_banner = $myhostname ESMTP $mail_name (Arch)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+readme_directory = no
+
+
+# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
+# information on enabling SSL in the smtp client.
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = {{ grains['fqdn'] }}
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = {{ grains['fqdn'] }}, localhost
+relayhost = smtp
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = localhost

@@ -1,0 +1,55 @@
+---
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: prometheus
+    url: https://prometheus-community.github.io/helm-charts
+  - name: longhorn
+    url: git+https://github.com/longhorn/longhorn.git@chart?ref=master
+
+
+helmDefaults:
+  wait: true
+  recreatePods: true
+  historyMax: 5
+
+releases:
+  - name: metallb
+    namespace: kube-system
+    chart: bitnami/metallb
+    values:
+      - configInline:
+          peers:
+          - peer-address: 192.168.86.1
+            peer-asn: 64512
+            my-asn: 64512
+          address-pools:
+          - name: default
+            protocol: bgp
+            addresses:
+            - 192.168.86.224/27
+        speaker:
+          secretValue: 'ref+sops://secrets.enc.yml#/metallb_secret'
+  - name: longhorn
+    namespace: longhorn-system
+    chart: longhorn/longhorn
+
+  - name: prometheus
+    namespace: monitoring
+    chart: prometheus/prometheus
+    values:
+      - alertmanager:
+          enabled: false
+        pushgateway:
+          enabled: false
+        server:
+          nodeSelector:
+            kubernetes.io/hostname: mbox
+          persistentVolume:
+            storageClass: local-path
+            size: 20Gi
+  - name: metrics-server
+    chart: bitnami/metrics-server
+    values:
+      - apiService:
+          create: true
