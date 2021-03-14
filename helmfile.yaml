@@ -6,6 +6,10 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
   - name: longhorn
     url: git+https://github.com/longhorn/longhorn.git@chart?ref=master
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: k8s-at-home
+    url: https://k8s-at-home.com/charts/
 
 
 helmDefaults:
@@ -30,6 +34,7 @@ releases:
             - 192.168.86.224/27
         speaker:
           secretValue: 'ref+sops://secrets.enc.yml#/metallb_secret'
+
   - name: longhorn
     namespace: longhorn-system
     chart: longhorn/longhorn
@@ -48,8 +53,44 @@ releases:
           persistentVolume:
             storageClass: local-path
             size: 20Gi
+
   - name: metrics-server
+    namespace: monitoring
     chart: bitnami/metrics-server
     values:
       - apiService:
           create: true
+
+  - name: grafana
+    chart: grafana/grafana
+    namespace: monitoring
+    values:
+      - datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Prometheus
+                type: prometheus
+                access: proxy
+                url: http://prometheus-server.monitoring.svc.cluster.local
+                isDefault: true
+      - dashboardProviders:
+          dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+            - name: 'default'
+              orgId: 1
+              folder: ''
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards
+      - dashboards:
+          default:
+            k8s:
+              url: https://grafana.com/api/dashboards/6417/revisions/1/download
+              datasource: Prometheus
+
+      - adminPassword: 'ref+sops://secrets.enc.yml#/grafana_password'
+
