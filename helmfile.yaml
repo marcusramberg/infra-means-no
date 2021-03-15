@@ -10,6 +10,8 @@ repositories:
     url: https://grafana.github.io/helm-charts
   - name: k8s-at-home
     url: https://k8s-at-home.com/charts/
+  - name: traefik
+    url: https://helm.traefik.io/traefik
 
 
 helmDefaults:
@@ -33,7 +35,7 @@ releases:
             addresses:
             - 192.168.86.224/27
         speaker:
-          secretValue: 'ref+sops://secrets.enc.yml#/metallb_secret'
+          secretValue: 'ref+sops://secrets.enc.yaml#/metallb_secret'
 
   - name: longhorn
     namespace: longhorn-system
@@ -92,5 +94,8 @@ releases:
               url: https://grafana.com/api/dashboards/6417/revisions/1/download
               datasource: Prometheus
 
-      - adminPassword: 'ref+sops://secrets.enc.yml#/grafana_password'
+      - adminPassword: 'ref+sops://secrets.enc.yaml#/grafana_password'
 
+  - name: traefik
+    chart: traefik/traefik
+    namespace: kube-system

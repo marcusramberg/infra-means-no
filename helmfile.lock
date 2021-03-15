@@ -2,7 +2,7 @@ version: 0.137.0
 dependencies:
 - name: grafana
   repository: https://grafana.github.io/helm-charts
-  version: 6.6.2
+  version: 6.6.3
 - name: longhorn
   repository: git+https://github.com/longhorn/longhorn.git@chart?ref=master
   version: 1.1.0
@@ -15,5 +15,8 @@ dependencies:
 - name: prometheus
   repository: https://prometheus-community.github.io/helm-charts
   version: 13.6.0
-digest: sha256:d85fc0eea58ae27b2c5190a963ac06065cb0a439f30916b2e36287232149d307
-generated: "2021-03-14T23:43:30.916021564+01:00"
+- name: traefik
+  repository: https://helm.traefik.io/traefik
+  version: 9.17.2
+digest: sha256:e88476cdb838fb669798fc85def2ba6480a92852130188644dd33c47bec91fac
+generated: "2021-03-15T21:13:11.279718032+01:00"
