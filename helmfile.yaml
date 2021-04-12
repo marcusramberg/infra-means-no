@@ -10,16 +10,23 @@ repositories:
     url: https://grafana.github.io/helm-charts
   - name: k8s-at-home
     url: https://k8s-at-home.com/charts/
-  - name: traefik
-    url: https://helm.traefik.io/traefik
+  - name: nginx
+    url: https://kubernetes.github.io/ingress-nginx
 
 
 helmDefaults:
   wait: true
-  recreatePods: true
   historyMax: 5
 
 releases:
+  # Bag repo for our local resources not provided by existing charts
+  - name: means.no
+    namespace: kube-system
+    chart: ./means.no
+    values:
+      - cloudflare_key: 'ref+sops://secrets.enc.yaml#/cloudflare_key'
+      - cloudflare_crt: 'ref+sops://secrets.enc.yaml#/cloudflare_crt'
+  # Load balancer speaking bgp with our er-x.
   - name: metallb
     namespace: kube-system
     chart: bitnami/metallb
@@ -36,17 +43,32 @@ releases:
             - 192.168.86.224/27
         speaker:
           secretValue: 'ref+sops://secrets.enc.yaml#/metallb_secret'
-
+  - name: nginx
+    chart: nginx/ingress-nginx
+    namespace: kube-system
+    values:
+      - extraArgs:
+          default-ssl-certificate: kube-system/means.no-tls
+  # Longhorn block storage system
   - name: longhorn
     namespace: longhorn-system
     chart: longhorn/longhorn
 
+  # Our base monitoring setup
   - name: prometheus
     namespace: monitoring
     chart: prometheus/prometheus
     values:
       - alertmanager:
-          enabled: false
+          enabled: true
+          persistentVolume:
+            storageClass: longhorn
+            size: 5Gi
+          ingress:
+            enabled: true
+            hosts:
+              - alerts.means.no
+
         pushgateway:
           enabled: false
         server:
@@ -56,6 +78,7 @@ releases:
             storageClass: local-path
             size: 20Gi
 
+  # Metrics server for internal monitoring.
   - name: metrics-server
     namespace: monitoring
     chart: bitnami/metrics-server
@@ -63,6 +86,7 @@ releases:
       - apiService:
           create: true
 
+  # For dashboards, you know.
   - name: grafana
     chart: grafana/grafana
     namespace: monitoring
@@ -93,9 +117,4 @@ releases:
             k8s:
               url: https://grafana.com/api/dashboards/6417/revisions/1/download
               datasource: Prometheus
-
       - adminPassword: 'ref+sops://secrets.enc.yaml#/grafana_password'
-
-  - name: traefik
-    chart: traefik/traefik
-    namespace: kube-system

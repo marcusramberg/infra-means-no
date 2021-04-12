@@ -1,10 +1,11 @@
 base_packages:
   pkg.installed:
     - pkgs:
-      - openssh
-      - bat
       - ansible
-      - unzip
+      - bat
+      - fzf
       - git
       - kitty
+      - openssh
+      - unzip
 
